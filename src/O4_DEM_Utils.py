@@ -22,7 +22,8 @@ else:
     unzip_cmd       = "7z "
 
 USGS_LOC="https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/IMG/"
-gdal_cmd='gdal_translate -of GTiff -co "PROFILE=GeoTIFF" '
+gdal_translate_cmd='gdal_translate -of GTiff -co "PROFILE=GeoTIFF" '
+gdal_warp_cmd='gdalwarp.exe --config GDAL_DATA "C:/Program Files/Python36/Lib/site-packages/osgeo/data/gdal" -t_srs EPSG:4326 '
 
 ##############################################################################
 class DEM():
@@ -274,16 +275,24 @@ def weighted_normals(way,side='left'):
 
 ##############################################################################
 def download_usgs_tiff(lat,lon,file_name):
-    usgs_name="USGS_NED_13_n"+str(lat + 1)+"w0"+str(-lon)+"_IMG"
+    usgs_name="USGS_NED_13_n"+str(lat + 1)+"w"+str(-lon).zfill(3)+"_IMG"
     if not os.path.exists(os.path.join(FNAMES.Tmp_dir,usgs_name + '.zip')):
         url=USGS_LOC+usgs_name+'.zip'
         print("Retrieving "+ url)
         r=requests.get(url)
+        if r.status_code != requests.codes.ok:
+            usgs_name="imgn"+str(lat + 1)+"w"+str(-lon).zfill(3)+"_13"
+            url=USGS_LOC+"n"+str(lat + 1)+"w"+str(-lon).zfill(3)+'.zip'
+            print("Retrieving "+ url)
+            r=requests.get(url)
+            if r.status_code != requests.codes.ok:
+                UI.vprint(1,"   Failed to located a USGS DEM image.")
         zipfile=open(os.path.join(FNAMES.Tmp_dir,usgs_name + '.zip'),'wb')
         zipfile.write(r.content)
         zipfile.close()
     os.system(unzip_cmd+' e '+os.path.join(FNAMES.Tmp_dir,usgs_name + '.zip')+' -y -o'+FNAMES.Tmp_dir+' *.img')
-    os.system(gdal_cmd + ' ' + os.path.join(FNAMES.Tmp_dir,usgs_name + '.img') +' '+file_name)
+    os.system(gdal_warp_cmd + ' ' + os.path.join(FNAMES.Tmp_dir,usgs_name + '.img') +' '+ os.path.join(FNAMES.Tmp_dir,usgs_name + '.tif'))
+    os.system(gdal_translate_cmd + ' ' + os.path.join(FNAMES.Tmp_dir,usgs_name + '.tif') +' '+file_name)
     os.remove(os.path.join(FNAMES.Tmp_dir,usgs_name + '.zip'))
     return
 
