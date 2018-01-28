@@ -22,7 +22,7 @@ else:
     unzip_cmd       = "7z "
 
 USGS_LOC="https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/IMG/"
-gdal_cmd='gdal_translate -srcwin 6 6 10801 10801 -of GTiff -co "PROFILE=GeoTIFF" '
+gdal_cmd='gdal_translate -of GTiff -co "PROFILE=GeoTIFF" '
 
 ##############################################################################
 class DEM():
@@ -45,7 +45,7 @@ class DEM():
                 file_name=FNAMES.Elevation_dir + '/' + FNAMES.short_latlon(self.lat,self.lon) + '.tif'
                 if not os.path.exists(file_name):
                     UI.lvprint(1,"   USGS Elevation Data not found, downloading.")
-                    download_usgs_tiff(self.lat, self.lon)
+                    download_usgs_tiff(self.lat, self.lon, file_name)
                 else:
                     UI.lvprint(1,"   Existing USGS Elevation Data found.")
             else:
@@ -273,8 +273,8 @@ def weighted_normals(way,side='left'):
 ##############################################################################
 
 ##############################################################################
-def download_usgs_tiff(lat,lon):
-    usgs_name="USGS_NED_13_n"+str(self.lat + 1)+"w0"+str(-self.lon)+"_IMG"
+def download_usgs_tiff(lat,lon,file_name):
+    usgs_name="USGS_NED_13_n"+str(lat + 1)+"w0"+str(-lon)+"_IMG"
     if not os.path.exists(os.path.join(FNAMES.Tmp_dir,usgs_name + '.zip')):
         url=USGS_LOC+usgs_name+'.zip'
         print("Retrieving "+ url)
