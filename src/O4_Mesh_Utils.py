@@ -278,6 +278,7 @@ def build_mesh(tile):
     UI.vprint(0,"\nStep 2 : Building mesh tile "+FNAMES.short_latlon(tile.lat,tile.lon)+" : \n--------\n")
     UI.progress_bar(1,0)
     timer=time.time()
+    tile_log=open(os.path.join(FNAMES.Tile_dir,'zOrtho4XP_' + FNAMES.short_latlon(tile.lat,tile.lon),FNAMES.short_latlon(tile.lat,tile.lon) + ".log"), 'w+')
     if tile.iterate==0:
         Tri_option = ' -pAuYBQ '
     else:
@@ -314,10 +315,13 @@ def build_mesh(tile):
             break
         else:
             print(line.decode("utf-8")[:-1])
+            tile_log.write(line.decode("utf-8"))
     if fingers_crossed.returncode:
         UI.exit_message_and_bottom_line("ERROR: Triangle4XP crashed (presumably a memory error).")
+        tile_log.write(line.decode("utf-8"))
+        tile_log.close()
         return 0
-        
+    tile_log.close()
     if UI.red_flag: UI.exit_message_and_bottom_line(); return 0
     
     vertices=post_process_nodes_altitudes(tile)

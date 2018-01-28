@@ -21,12 +21,16 @@ elif 'win' in sys.platform:
 else:
     unzip_cmd       = "7z "
 
+USGS_LOC="https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/IMG/"
+gdal_cmd='gdal_translate -srcwin 6 6 10801 10801 -of GTiff -co "PROFILE=GeoTIFF" '
+
 ##############################################################################
 class DEM():
 
-    def __init__(self,lat,lon,file_name='',fill_nodata=True):
+    def __init__(self,lat,lon,file_name='',fill_nodata=True,usgs_tiff=False):
         self.lat=lat
         self.lon=lon
+        self.usgs_tiff=usgs_tiff
         self.load_data(file_name) 
         if fill_nodata:
             self.fill_nodata()
@@ -36,9 +40,18 @@ class DEM():
 
     def load_data(self,file_name=''):
         if not file_name:
-            file_name=FNAMES.viewfinderpanorama(self.lat, self.lon)
-            if not os.path.exists(file_name):
-                download_viewfinderpanorama(self.lat,self.lon)
+            if self.usgs_tiff:
+                UI.lvprint(1,"   Using USGS Elevation Data.")
+                file_name=FNAMES.Elevation_dir + '/' + FNAMES.short_latlon(self.lat,self.lon) + '.tif'
+                if not os.path.exists(file_name):
+                    UI.lvprint(1,"   USGS Elevation Data not found, downloading.")
+                    download_usgs_tiff(self.lat, self.lon)
+                else:
+                    UI.lvprint(1,"   Existing USGS Elevation Data found.")
+            else:
+                file_name=FNAMES.viewfinderpanorama(self.lat, self.lon)
+                if not os.path.exists(file_name):
+                    download_viewfinderpanorama(self.lat,self.lon)
         if ('.hgt') in file_name or ('.HGT' in file_name):
             try:
                 self.nxdem=self.nydem=int(round(sqrt(os.path.getsize(file_name)/2)))
@@ -79,7 +92,7 @@ class DEM():
             except:
                 UI.vprint(1,"  Raster did not contain EPSG code information, assuming 4326.") 
                 self.epsg=4326
-            if self.epsg!=4326:
+            if self.epsg!=4326 and not self.usgs_tiff:
                 UI.lvprint(1,"  Error, unsupported EPSG code :",self.epsg,". Only EPSG 4326 is supported, data replaced with zero altitude.") 
                 self.nxdem=self.nydem=1201
                 self.alt_dem=numpy.zeros([1201,1201],dtype=numpy.float32)
@@ -260,6 +273,20 @@ def weighted_normals(way,side='left'):
 ##############################################################################
 
 ##############################################################################
+def download_usgs_tiff(lat,lon):
+    usgs_name="USGS_NED_13_n"+str(self.lat + 1)+"w0"+str(-self.lon)+"_IMG"
+    if not os.path.exists(os.path.join(FNAMES.Tmp_dir,usgs_name + '.zip')):
+        url=USGS_LOC+usgs_name+'.zip'
+        print("Retrieving "+ url)
+        r=requests.get(url)
+        zipfile=open(os.path.join(FNAMES.Tmp_dir,usgs_name + '.zip'),'wb')
+        zipfile.write(r.content)
+        zipfile.close()
+    os.system(unzip_cmd+' e '+os.path.join(FNAMES.Tmp_dir,usgs_name + '.zip')+' -y -o'+FNAMES.Tmp_dir+' *.img')
+    os.system(gdal_cmd + ' ' + os.path.join(FNAMES.Tmp_dir,usgs_name + '.img') +' '+file_name)
+    os.remove(os.path.join(FNAMES.Tmp_dir,usgs_name + '.zip'))
+    return
+
 def download_viewfinderpanorama(lat,lon):
     UI.vprint(1,"   No elevation file found, I download it from viewfinderpanorama (J. de Ferranti)")
     if (lat,lon) in ((44,5),(45,5),(46,5),(43,6),(44,6),(45,6),(46,6),(47,6),(43,7),(44,7),(45,7),

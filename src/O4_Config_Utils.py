@@ -49,7 +49,7 @@ cfg_vars={
     'iterate':             {'type':int,  'default':0,'hint':"Allows to refine a mesh using higher resolution elevation data of local scope only (requires Gdal), typically LIDAR data. Having an iterate number is handy to go backward one step when some choice of parameters needs to be revised."},     
     # Masks
     'mask_zl':             {'type':int,'default':15,'hint':'The zoomlevel at which the (sea) water masks are built. Masks are used for alpha channel, and this channel usually requires less resolution than the RGB ones, the reason for this (VRAM saving) parameter. If the coastline and elevation data are very detailed, it might be interesting to lieft this parameter up so that the masks can reproduce this complexity.'},
-    'masks_width':         {'type':list,'default':100,'hint':'Maximum extent of the masks perpendicularly to the coastline (rough definition). NOTE: The value is now in meters, it used to be in ZL14 pixel size in earlier verions, the scale is roughly one to ten between both.'},
+    'masks_width':         {'type':int,'default':100,'hint':'Maximum extent of the masks perpendicularly to the coastline (rough definition). NOTE: The value is now in meters, it used to be in ZL14 pixel size in earlier verions, the scale is roughly one to ten between both.'},
     'masking_mode':        {'type':str,'default':'nonlin','values':['sand','rocks','3steps'],'hint':'A selection of three tentative masking algorithms (still looking for the Holy Grail...). The first two (sand and rocks) requires masks_width to be a single value; the third one (3steps) requires a list of the form [a,b,c] for masks width: "a" is the length in meters of a first transition from plain imagery at the shoreline towards ratio_water transparency, "b" is the second extent zone where transparency level is kept constant equal to ratio_water, and "c" is the last extent where the masks eventually fade to nothing. The transition with rocks is more abrupt than with sand.'},
     'use_masks_for_inland':{'type':bool,'default':False,'hint':'Will use masks for the inland water (lakes, rivers, etc) too, instead of the default constant transparency level determined by ratio_water. This is VRAM expensive and presumably not really worth the price.'},
     'masks_use_DEM_too':   {'type':bool,'default':False,'hint':'If you have acces to high resolutions DEMs (really shines with 5m or lower), you can use the elevation in addition to the vector data in order to draw masks with higher precision. If the DEM is not high res, this option will yield unpleasant pixellisation.'},
@@ -70,11 +70,12 @@ cfg_vars={
     'overlay_lod':         {'type':float,'default':25000,'hint':'Distance until which overlay imageries (that is orthophotos over water) are drawn. Lower distances have a positive impact on frame rate and VRAM usage, and IFR flyers will probably need a higher value than VFR ones.'},
     'use_decal_on_terrain':{'type':bool,'default':False,'hint':'Terrain files for all but water triangles will contain the maquify_1_green_key.dcl decal directive. The effect is noticeable at very low altitude and helps to overcome the orthophoto blur at such levels. Can be slightly distracting at higher altitude.'},
     # Other
+    'usgs_tiff':           {'type':bool,'default':False,'hint':'When set to True Ortho4XP will attempt to use/download USGS high resolution elevation data'},
     'custom_dem':          {'type':str,'default':'','hint':'Path to an elevation data file to be used instead of the default Viewfinderpanoramas.org ones (J. de Ferranti). The raster must be in geopgraphical coordinates (EPSG:4326) but the extent need not match the tile boundary (requires Gdal). Regions of the tile that are not covered by the raster are mapped to zero altitude (can be useful for high resolution data over islands in particular).     '},
     'fill_nodata':         {'type':bool,'default':True,'hint':'When set, the no_data values in the raster will be filled by a nearest neighbour algorithm. If unset, they are turned into zero (can be useful for rasters with no_data over the whole oceanic part or partial LIDAR data).'}
 }
 
-list_app_vars=['verbosity','cleaning_level','overpass_server_choice',
+list_app_vars=['usgs_tiff','verbosity','cleaning_level','overpass_server_choice',
                'skip_downloads','skip_converts','max_convert_slots','check_tms_response',
                'http_timeout','max_connect_retries','max_baddata_retries','ovl_exclude_pol','ovl_exclude_net','custom_scenery_dir','custom_overlay_src']
 gui_app_vars_short=list_app_vars[:-2]
@@ -84,7 +85,7 @@ list_vector_vars=['road_level','road_banking_limit','max_levelled_segs','min_are
 list_mesh_vars=['curvature_tol','apt_curv_tol','apt_curv_ext','coast_curv_tol','coast_curv_ext','hmin','min_angle','apt_smoothing_pix','sea_smoothing_mode','water_smoothing','iterate']
 list_mask_vars=['mask_zl','masks_width','masking_mode','use_masks_for_inland','masks_use_DEM_too','masks_custom_extent']
 list_dsf_vars=['cover_airports_with_highres','cover_extent','cover_zl','ratio_water','overlay_lod','sea_texture_blur','add_low_res_sea_ovl','experimental_water','normal_map_strength','terrain_casts_shadows','use_decal_on_terrain']
-list_other_vars=['custom_dem','fill_nodata']
+list_other_vars=['custom_dem','fill_nodata','usgs_tiff']
 list_tile_vars=list_vector_vars+list_mesh_vars+list_mask_vars+list_dsf_vars+list_other_vars+['default_website','default_zl','zone_list']
 
 list_global_cfg=list_app_vars+list_vector_vars+list_mesh_vars+list_mask_vars+list_dsf_vars
@@ -149,7 +150,7 @@ class Tile():
     def ensure_elevation_data(self):
         if not self.dem: 
             UI.vprint(1,"-> Loading elevation data")
-            self.dem=DEM.DEM(self.lat,self.lon,self.custom_dem,self.fill_nodata)
+            self.dem=DEM.DEM(self.lat,self.lon,self.custom_dem,self.fill_nodata,self.usgs_tiff)
         else:
             UI.vprint(1,"-> Recycling elevation data")
 
@@ -172,7 +173,13 @@ class Tile():
                     # compatibility with config files from version <= 1.20
                     if value and value[0] in ('"',"'"): value=value[1:]
                     if value and value[-1] in ('"',"'"): value=value[:-1]
-                    exec("self."+var+"=cfg_vars['"+var+"'](value)")
+                    if cfg_vars[var]['type'] is (str):
+                        #print("self."+var+"='"+value+"'")
+                        exec("self."+var+"='"+value+"'")
+                    else:
+                        #print("self."+var+"="+value)
+                        exec("self."+var+"="+value)
+
                 except Exception as e:
                     UI.vrpint(2,e)
                     pass
@@ -271,6 +278,13 @@ class Ortho4XP_Config(tk.Toplevel):
         values=[True,False] 
         self.entry_[item]=ttk.Combobox(self.frame_cfg,values=values,textvariable=self.v_[item],width=6,state='readonly',style='O4.TCombobox')
         self.entry_[item].grid(row=row,column=7,padx=2,pady=2,sticky=W)
+        row+=1
+
+        item='usgs_tiff'
+        ttk.Button(self.frame_cfg,text=item,takefocus=False,command=lambda item=item: self.popup(item,cfg_vars[item]['hint'])).grid(row=row,column=0,padx=2,pady=2,sticky=E+W)
+        values=[True,False] 
+        self.entry_[item]=ttk.Combobox(self.frame_cfg,values=values,textvariable=self.v_[item],width=6,state='readonly',style='O4.TCombobox')
+        self.entry_[item].grid(row=row,column=1,padx=2,pady=2,sticky=W)
         row+=1
         
         ttk.Separator(self.frame_cfg,orient=tk.HORIZONTAL).grid(row=row,column=0,columnspan=8,sticky=N+S+E+W); row+=1
