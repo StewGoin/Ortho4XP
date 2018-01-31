@@ -1,0 +1,3 @@
+# Created with : D:\Ortho4XP\mask_region.py Idaho rel[admin_level=4][name=Idaho] 4326 0.0005 0.002 20
+mask_bounds=-117.250035,41.9370831664,-110.9995572531,49.06252
+blur_radius=20

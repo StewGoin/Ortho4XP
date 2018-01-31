@@ -1,0 +1,3 @@
+# Created with : D:\Ortho4XP\mask_region.py Connecticut rel[admin_level=4][name=Connecticut] 4326 0.0005 0.002 20
+mask_bounds=-73.750029,40.9378322643,-71.7503791775,42.062523
+blur_radius=20
