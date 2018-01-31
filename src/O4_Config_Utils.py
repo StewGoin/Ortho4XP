@@ -174,11 +174,7 @@ class Tile():
                     if value and value[0] in ('"',"'"): value=value[1:]
                     if value and value[-1] in ('"',"'"): value=value[:-1]
                     if cfg_vars[var]['type'] is (str):
-                        #print("self."+var+"='"+value+"'")
-                        exec("self."+var+"='"+value+"'")
-                    else:
-                        #print("self."+var+"="+value)
-                        exec("self."+var+"="+value)
+                    exec("self."+var+"=cfg_vars['"+var+"'](value)")
 
                 except Exception as e:
                     UI.vrpint(2,e)

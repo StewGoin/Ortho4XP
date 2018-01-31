@@ -34,7 +34,7 @@ request_headers_generic={
             }
 
 if 'dar' in sys.platform:
-    dds_convert_cmd = os.path.join(UI.Ortho4XP_dir,"Utils","nvcompress","nvcompress-osx") 
+    dds_convert_cmd = os.path.join(UI.Ortho4XP_dir,"Utils","nvcompress","nvcompress.app") 
     gdal_transl_cmd = 'gdal_translate'
     devnull_rdir    = " >/dev/null 2>&1"
 elif 'win' in sys.platform: 
