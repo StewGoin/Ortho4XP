@@ -286,8 +286,7 @@ class Vector_Map():
         f.write(str(total_edges)+' 1\n')
         idx=1
         for edge_id in self.edges_dico:
-            #f.write(str(idx)+' '+str(self.edges_dico[edge_id][0])+' '+str(self.edges_dico[edge_id][1])+' '+str(self.data_edges[edge_id])+'\n')
-            f.write(str(idx)+' '+' '.join(['{:.17f}'.format(x) for x in (self.edges_dico[edge_id][0],self.edges_dico[edge_id][1],self.data_edges[edge_id])])+'\n')
+            f.write(str(idx)+' '+' '.join(['{:.15f}'.format(x) for x in (self.edges_dico[edge_id][0],self.edges_dico[edge_id][1],self.data_edges[edge_id])])+'\n')
             idx+=1
         f.write('\n'+str(len(self.holes))+'\n')
         idx=1
