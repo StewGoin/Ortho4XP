@@ -304,19 +304,18 @@ def build_mesh(tile):
     curv_tol_scaling=tile.dem.nxdem/(1000*(tile.dem.x1-tile.dem.x0))
     hmin_effective=max(tile.hmin,(tile.dem.y1-tile.dem.y0)*GEO.lat_to_m/tile.dem.nydem/2)
     mesh_cmd=[Triangle4XP_cmd.strip(),
-                Tri_option.strip(),
-                '{:.9g}'.format(GEO.lon_to_m(tile.lat)),
-                '{:.9g}'.format(GEO.lat_to_m),
-                '{:n}'.format(tile.dem.nxdem),
-                '{:n}'.format(tile.dem.nydem),
-                '{:.9g}'.format(tile.dem.x0),
-                '{:.9g}'.format(tile.dem.y0),
-                '{:.9g}'.format(tile.dem.x1),
-                '{:.9g}'.format(tile.dem.y1),
-                '{:.9g}'.format(tile.dem.nodata),
-                '{:.9g}'.format(tile.curvature_tol*curv_tol_scaling),
-                '{:.9g}'.format(tile.min_angle),str(hmin_effective),alt_file,weight_file,poly_file]
-
+              Tri_option.strip(),
+              '{:.9g}'.format(GEO.lon_to_m(tile.lat)),
+              '{:.9g}'.format(GEO.lat_to_m),
+              '{:n}'.format(tile.dem.nxdem),
+              '{:n}'.format(tile.dem.nydem),
+              '{:.9g}'.format(tile.dem.x0),
+              '{:.9g}'.format(tile.dem.y0),
+              '{:.9g}'.format(tile.dem.x1),
+              '{:.9g}'.format(tile.dem.y1),
+              '{:.9g}'.format(tile.dem.nodata),
+              '{:.9g}'.format(tile.curvature_tol*curv_tol_scaling),
+              '{:.9g}'.format(tile.min_angle),str(hmin_effective),alt_file,weight_file,poly_file]
     UI.vprint(1,"-> Start of the mesh algorithm Triangle4XP.")
     UI.vprint(2,'  Mesh command:',' '.join(mesh_cmd))
     fingers_crossed=subprocess.Popen(mesh_cmd,stdout=subprocess.PIPE,bufsize=0)
