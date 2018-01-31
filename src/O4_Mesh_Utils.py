@@ -283,7 +283,7 @@ def build_mesh(tile):
     if tile.iterate==0:
         Tri_option = '-pAuYB'+tri_verbosity
     else:
-        Tri_option = '-pAuYB'+tri_verbosity
+        Tri_option = '-pruYB'+tri_verbosity
     poly_file    = FNAMES.input_poly_file(tile)
     alt_file     = FNAMES.alt_file(tile)
     weight_file  = FNAMES.weight_file(tile)
@@ -316,6 +316,7 @@ def build_mesh(tile):
               '{:.9g}'.format(tile.dem.nodata),
               '{:.9g}'.format(tile.curvature_tol*curv_tol_scaling),
               '{:.9g}'.format(tile.min_angle),str(hmin_effective),alt_file,weight_file,poly_file]
+
     UI.vprint(1,"-> Start of the mesh algorithm Triangle4XP.")
     UI.vprint(2,'  Mesh command:',' '.join(mesh_cmd))
     fingers_crossed=subprocess.Popen(mesh_cmd,stdout=subprocess.PIPE,bufsize=0)
@@ -361,7 +362,7 @@ def triangulate(name,path_to_Ortho4XP_dir):
             break
         else:
             print(line.decode("utf-8")[:-1])
-    fingers_crossed.poll()
+    fingers_crossed.poll()  
     if fingers_crossed.returncode:
         print("\nERROR: triangle crashed, check osm mask data.\n")
         return 0
