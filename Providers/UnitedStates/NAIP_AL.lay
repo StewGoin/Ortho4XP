@@ -1,0 +1,7 @@
+request_type=wms
+wms_size=2048
+wms_version=1.3.0
+epsg_code=4326
+url_prefix=https://gis.apfo.usda.gov/arcgis/services/NAIP/Alabama_2015_1m/ImageServer/WMSServer?
+layers=0
+extent=Alabamaimagery_dir=code

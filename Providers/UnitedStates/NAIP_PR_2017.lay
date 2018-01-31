@@ -1,0 +1,8 @@
+request_type=wms
+wms_size=2048
+wms_version=1.3.0
+epsg_code=4326
+url_prefix=https://services.nationalmap.gov/arcgis/services/USGSNAIPPlus/MapServer/WmsServer?
+layers=1
+extent=PuertoRico
+imagery_dir=code

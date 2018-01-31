@@ -297,6 +297,8 @@ def download_usgs_tiff(lat,lon,file_name):
     os.system(gdal_warp_cmd + ' ' + os.path.join(FNAMES.Tmp_dir,usgs_name + '.img') +' '+ os.path.join(FNAMES.Tmp_dir,usgs_name + '.tif'))
     os.system(gdal_translate_cmd + ' ' + os.path.join(FNAMES.Tmp_dir,usgs_name + '.tif') +' '+file_name)
     os.remove(os.path.join(FNAMES.Tmp_dir,usgs_name + '.zip'))
+    os.remove(os.path.join(FNAMES.Tmp_dir,usgs_name + '.img'))
+    os.remove(os.path.join(FNAMES.Tmp_dir,usgs_name + '.tif'))
     return
 
 def download_viewfinderpanorama(lat,lon):
