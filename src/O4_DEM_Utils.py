@@ -94,7 +94,7 @@ class DEM():
                 self.epsg=int(self.ds.GetProjection().split('"')[-2])
             except:
                 UI.vprint(1,"  WARNIG: raster did not advertise its EPSG code, assuming 4326.") 
-                self.epsg=4326D
+                self.epsg=4326
             if self.epsg!=4326 and not self.usgs_tiff:
                 UI.lvprint(1,"  ERROR: unsupported EPSG code ",self.epsg,". Only EPSG:4326 is supported, data replaced with zero altitude.")
                 self.nxdem=self.nydem=1201
