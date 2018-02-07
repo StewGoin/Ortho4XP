@@ -1,0 +1,3 @@
+# Created with : D:\Ortho4XP\mask_region.py West_Virginia_2016_1m rel[admin_level=4][name=West Virginia] 4326 0.0005 0.002 20
+mask_bounds=-82.68753,37.1876846531,-77.6875071286,40.687521
+blur_radius=20

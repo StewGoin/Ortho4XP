@@ -1,0 +1,3 @@
+# Created with : D:\Ortho4XP\mask_region.py Maryland rel[admin_level=4][name=Maryland] 4326 0.0005 0.002 20
+mask_bounds=-79.500031,37.875002,-75.000153,39.750026
+blur_radius=20

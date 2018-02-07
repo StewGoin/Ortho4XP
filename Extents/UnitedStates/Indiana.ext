@@ -1,0 +1,3 @@
+# Created with : D:\Ortho4XP\mask_region.py Indiana rel[admin_level=4][name=Indiana] 4326 0.0005 0.002 20
+mask_bounds=-88.125029,37.7503442852,-84.7500584776,41.812526
+blur_radius=20

@@ -1,0 +1,3 @@
+# Created with : D:\Ortho4XP\mask_region.py Massachusetts rel[admin_level=4][name=Massachusetts] 4326 0.0005 0.002 20
+mask_bounds=-73.562533,41.1876008265,-69.8749487587,42.937519
+blur_radius=20

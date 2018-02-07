@@ -1,0 +1,3 @@
+# Created with : D:\Ortho4XP\mask_region.py New_Hampshire_2016_60cm rel[admin_level=4][name=New Hampshire] 4326 0.0005 0.002 20
+mask_bounds=-72.56253,42.6876437398,-70.5628801775,45.312521
+blur_radius=20

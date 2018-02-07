@@ -1,0 +1,3 @@
+# Created with : D:\Ortho4XP\mask_region.py Wyoming rel[admin_level=4][name=Wyoming] 4326 0.0005 0.002 20
+mask_bounds=-111.062525,40.9374572153,-103.9999702363,45.062521
+blur_radius=20
