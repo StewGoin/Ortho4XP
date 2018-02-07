@@ -248,7 +248,8 @@ def build_dsf(tile,download_queue):
         else:
             scale_z=13107 # 65535=13107*5
             inv_stp=5
-        scal_x=scal_y=2**(-level)*65536/65535    
+        #scal_x=scal_y=2**(-level)*65536/65535
+        scal_x=scal_y=2**(-level)
         node_icoords[[5*idx_node+2 for idx_node in plist]]=numpy.round((altitudes-altmin)*inv_stp)
         pool_param[key_to_idx_pool[key]]=(scal_x,tile.lon+int(key[0],2)*scal_x,scal_y,tile.lat+int(key[1],2)*scal_y,scale_z,altmin,2,-1,2,-1,1,0,1,0,1,0,1,0)
     node_icoords[3::5]=numpy.round((1+tile.normal_map_strength*node_coords[3::5])/2*65535)

@@ -161,6 +161,8 @@ class Tile():
                 config_file=os.path.join(self.build_dir,"Ortho4XP.cfg")
                 if not os.path.isfile(config_file):
                     UI.lvprint(0,"CFG error: No config file found for tile",FNAMES.short_latlon(self.lat,self.lon))
+                    UI.lvprint(0,"Copying current global config as tile config for",FNAMES.short_latlon(self.lat,self.lon))
+                    self.write_to_config(os.path.join(self.build_dir,"Ortho4XP_"+FNAMES.short_latlon(self.lat,self.lon)+".cfg"))
                     return 0
         try:
             f=open(config_file,'r')
@@ -173,7 +175,10 @@ class Tile():
                     # compatibility with config files from version <= 1.20
                     if value and value[0] in ('"',"'"): value=value[1:]
                     if value and value[-1] in ('"',"'"): value=value[:-1]
-                    exec("self."+var+"=cfg_vars['"+var+"'](value)")
+                    if cfg_vars[var]['type'] is (str):
+                        exec("self."+var+"='"+value+"'")
+                    else:
+                        exec("self."+var+"="+value)
 
                 except Exception as e:
                     UI.vrpint(2,e)

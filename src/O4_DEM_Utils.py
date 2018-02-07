@@ -22,8 +22,6 @@ else:
     unzip_cmd       = "7z "
 
 USGS_LOC="https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/IMG/"
-gdal_translate_cmd='gdal_translate -of GTiff -co "PROFILE=GeoTIFF" '
-gdal_warp_cmd='gdalwarp --config GDAL_DATA "C:/Program Files/Python36/Lib/site-packages/osgeo/data/gdal" -t_srs EPSG:4326 '
 
 ##############################################################################
 class DEM():
@@ -43,10 +41,12 @@ class DEM():
         if not file_name:
             if self.usgs_tiff:
                 UI.lvprint(1,"   Using USGS Elevation Data.")
-                file_name=FNAMES.Elevation_dir + '/' + FNAMES.short_latlon(self.lat,self.lon) + '.tif'
+                file_name=FNAMES.Elevation_dir + '/' + FNAMES.short_latlon(self.lat,self.lon) + '.img'
+                print(file_name)
                 if not os.path.exists(file_name):
                     UI.lvprint(1,"   USGS Elevation Data not found, downloading.")
-                    download_usgs_tiff(self.lat, self.lon, file_name)
+                    download_name=FNAMES.short_latlon(self.lat,self.lon) + '.img'
+                    download_usgs_tiff(self.lat, self.lon, download_name)
                 else:
                     UI.lvprint(1,"   Existing USGS Elevation Data found.")
             else:
@@ -85,8 +85,9 @@ class DEM():
             self.ds=gdal.Open(file_name)
             self.rs=self.ds.GetRasterBand(1)
             self.alt_dem=self.rs.ReadAsArray().astype(numpy.float32)
-            (self.nxdem,self.nydem)=(self.ds.RasterXSize,self.ds.RasterYSize) 
-            self.nodata=self.rs.GetNoDataValue()
+            (self.nxdem,self.nydem)=(self.ds.RasterXSize,self.ds.RasterYSize)
+            #self.nodata=self.rs.GetNoDataValue() 
+            self.nodata=numpy.float32(self.rs.GetNoDataValue())
             if self.nodata is None: 
                 UI.vprint(1,"  WARNING: raster DEM do not advertise its no_data value, assuming -32768.")
                 self.nodata=-32768
@@ -95,7 +96,7 @@ class DEM():
             except:
                 UI.vprint(1,"  WARNIG: raster did not advertise its EPSG code, assuming 4326.") 
                 self.epsg=4326
-            if self.epsg!=4326:
+            if self.epsg!=4326 and self.epsg!=4269:
                 UI.lvprint(1,"  ERROR: unsupported EPSG code ",self.epsg,". Only EPSG:4326 is supported, data replaced with zero altitude.")
                 self.nxdem=self.nydem=1201
                 self.alt_dem=numpy.zeros([1201,1201],dtype=numpy.float32)
@@ -277,7 +278,7 @@ def weighted_normals(way,side='left'):
 ##############################################################################
 
 ##############################################################################
-def download_usgs_tiff(lat,lon,file_name):
+def download_usgs_tiff(lat,lon,download_name):
     usgs_name="USGS_NED_13_n"+str(lat + 1)+"w"+str(-lon).zfill(3)+"_IMG"
     if not os.path.exists(os.path.join(FNAMES.Tmp_dir,usgs_name + '.zip')):
         url=USGS_LOC+usgs_name+'.zip'
@@ -294,11 +295,7 @@ def download_usgs_tiff(lat,lon,file_name):
         zipfile.write(r.content)
         zipfile.close()
     os.system(unzip_cmd+' e '+os.path.join(FNAMES.Tmp_dir,usgs_name + '.zip')+' -y -o'+FNAMES.Tmp_dir+' *.img')
-    os.system(gdal_warp_cmd + ' ' + os.path.join(FNAMES.Tmp_dir,usgs_name + '.img') +' '+ os.path.join(FNAMES.Tmp_dir,usgs_name + '.tif'))
-    os.system(gdal_translate_cmd + ' ' + os.path.join(FNAMES.Tmp_dir,usgs_name + '.tif') +' '+file_name)
-    os.remove(os.path.join(FNAMES.Tmp_dir,usgs_name + '.zip'))
-    os.remove(os.path.join(FNAMES.Tmp_dir,usgs_name + '.img'))
-    os.remove(os.path.join(FNAMES.Tmp_dir,usgs_name + '.tif'))
+    os.rename(os.path.join(FNAMES.Tmp_dir,usgs_name+'.img'),os.path.join(FNAMES.Elevation_dir,download_name))
     return
 
 def download_viewfinderpanorama(lat,lon):

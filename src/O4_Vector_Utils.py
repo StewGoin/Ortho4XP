@@ -218,6 +218,7 @@ class Vector_Map():
             for polygon in ensure_MultiPolygon(pol):
                 if polygon.area<=area_limit:
                     continue
+                polygon=geometry.Polygon(numpy.round(numpy.array(polygon.exterior.coords),7),[numpy.round(numpy.array(geom.coords),7) for geom in polygon.interiors])
                 try:
                     polygon=geometry.polygon.orient(polygon)  # important for certain pol_to_alt instances
                 except:
