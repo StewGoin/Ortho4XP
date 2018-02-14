@@ -258,7 +258,7 @@ class Vector_Map():
             for linestring in ensure_MultiLineString(line):
                 if linestring.is_empty: 
                     continue
-                way=numpy.array(linestring)
+                way=numpy.round(numpy.array(linestring),7)
                 if refine: way=refine_way(way,refine)
                 alti_way=line_to_alt(way).reshape((len(way),1))
                 self.insert_way(numpy.hstack([way,alti_way]),marker,check)

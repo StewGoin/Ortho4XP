@@ -294,7 +294,7 @@ def download_usgs_tiff(lat,lon,download_name):
         zipfile=open(os.path.join(FNAMES.Tmp_dir,usgs_name + '.zip'),'wb')
         zipfile.write(r.content)
         zipfile.close()
-    os.system(unzip_cmd+' e '+os.path.join(FNAMES.Tmp_dir,usgs_name + '.zip')+' -y -o'+FNAMES.Tmp_dir+' *.img')
+    os.system(unzip_cmd+' e '+os.path.join(FNAMES.Tmp_dir,usgs_name + '.zip')+' -r -y -o'+FNAMES.Tmp_dir+' *.img')
     os.rename(os.path.join(FNAMES.Tmp_dir,usgs_name+'.img'),os.path.join(FNAMES.Elevation_dir,download_name))
     return
 
