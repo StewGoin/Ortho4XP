@@ -240,7 +240,7 @@ class Vector_Map():
                     else:
                         self.seeds[marker]=[numpy.array(polygon.representative_point())]
                 except Exception as e:
-                    UI.vprint(2,e+str(list(polygon.exterior.coords))) 
+                    UI.vprint(2,str(e)+str(list(polygon.exterior.coords))) 
             done+=1
             if done%step==0: 
                 UI.progress_bar(1,int(100*done/todo))
