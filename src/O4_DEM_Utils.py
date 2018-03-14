@@ -41,7 +41,11 @@ class DEM():
         if not file_name:
             if self.usgs_tiff:
                 UI.lvprint(1,"   Using USGS Elevation Data.")
-                file_name=FNAMES.Elevation_dir + '/' + FNAMES.short_latlon(self.lat,self.lon) + '.img'
+                file_name=FNAMES.Elevation_dir + '/' + FNAMES.short_latlon(self.lat,self.lon) + '_merged.tif'
+                if os.path.exists(file_name):
+                    UI.lvprint(1,"   Existing merged USGS Elevation Data found.")
+                else:
+                    file_name=FNAMES.Elevation_dir + '/' + FNAMES.short_latlon(self.lat,self.lon) + '.img'
                 print(file_name)
                 if not os.path.exists(file_name):
                     UI.lvprint(1,"   USGS Elevation Data not found, downloading.")

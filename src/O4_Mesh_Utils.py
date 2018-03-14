@@ -10,6 +10,7 @@ import O4_File_Names as FNAMES
 import O4_Geo_Utils as GEO
 import O4_Vector_Utils as VECT
 import O4_OSM_Utils as OSM
+import O4_Config_Utils as CFG
 
 if 'dar' in sys.platform:
     Triangle4XP_cmd = os.path.join(FNAMES.Utils_dir,"Triangle4XP_v130.app ")
@@ -300,42 +301,80 @@ def build_mesh(tile):
     weight_array.tofile(weight_file)
     
     del(weight_array)
-    
+    curv_tol = tile.curvature_tol
     curv_tol_scaling=tile.dem.nxdem/(1000*(tile.dem.x1-tile.dem.x0))
     hmin_effective=max(tile.hmin,(tile.dem.y1-tile.dem.y0)*GEO.lat_to_m/tile.dem.nydem/2)
-    mesh_cmd=[Triangle4XP_cmd.strip(),
-              Tri_option.strip(),
-              '{:.9g}'.format(GEO.lon_to_m(tile.lat)),
-              '{:.9g}'.format(GEO.lat_to_m),
-              '{:n}'.format(tile.dem.nxdem),
-              '{:n}'.format(tile.dem.nydem),
-              '{:.9g}'.format(tile.dem.x0),
-              '{:.9g}'.format(tile.dem.y0),
-              '{:.9g}'.format(tile.dem.x1),
-              '{:.9g}'.format(tile.dem.y1),
-              '{:.9g}'.format(tile.dem.nodata),
-              '{:.9g}'.format(tile.curvature_tol*curv_tol_scaling),
-              '{:.9g}'.format(tile.min_angle),str(hmin_effective),alt_file,weight_file,poly_file]
-
-    UI.vprint(1,"-> Start of the mesh algorithm Triangle4XP.")
-    UI.vprint(2,'  Mesh command:',' '.join(mesh_cmd))
-    fingers_crossed=subprocess.Popen(mesh_cmd,stdout=subprocess.PIPE,bufsize=0)
     while True:
-        line = fingers_crossed.stdout.readline()
-        if not line: 
+        mesh_cmd=[Triangle4XP_cmd.strip(),
+                  Tri_option.strip(),
+                  '{:.9g}'.format(GEO.lon_to_m(tile.lat)),
+                  '{:.9g}'.format(GEO.lat_to_m),
+                  '{:n}'.format(tile.dem.nxdem),
+                  '{:n}'.format(tile.dem.nydem),
+                  '{:.9g}'.format(tile.dem.x0),
+                  '{:.9g}'.format(tile.dem.y0),
+                  '{:.9g}'.format(tile.dem.x1),
+                  '{:.9g}'.format(tile.dem.y1),
+                  '{:.9g}'.format(tile.dem.nodata),
+                  '{:.9g}'.format(curv_tol*curv_tol_scaling),
+                  '{:.9g}'.format(tile.min_angle),str(hmin_effective),alt_file,weight_file,poly_file]
+
+        UI.vprint(1,"-> Start of the mesh algorithm Triangle4XP.")
+        UI.vprint(2,'  Mesh command:',' '.join(mesh_cmd))
+        fingers_crossed=subprocess.Popen(mesh_cmd,stdout=subprocess.PIPE,bufsize=0)
+        while True:
+            line = fingers_crossed.stdout.readline()
+            if not line: 
+                break
+            else:
+                print(line.decode("utf-8")[:-1])
+                tile_log.write(line.decode("utf-8"))
+        fingers_crossed.poll()
+        if fingers_crossed.returncode:
+            UI.exit_message_and_bottom_line("\nERROR: Triangle4XP crashed !\n\n"+\
+                                            "If the reason is not due to the limited amount of RAM please\n"+\
+                                            "file a bug including the .node and .poly files for that you\n"+\
+                                            "will find in "+str(tile.build_dir)+".\n")
+            tile_log.write(line.decode("utf-8"))
+            tile_log.close()
             break
         else:
-            print(line.decode("utf-8")[:-1])
-            tile_log.write(line.decode("utf-8"))
-    fingers_crossed.poll()
-    if fingers_crossed.returncode:
-        UI.exit_message_and_bottom_line("\nERROR: Triangle4XP crashed !\n\n"+\
-                                        "If the reason is not due to the limited amount of RAM please\n"+\
-                                        "file a bug including the .node and .poly files for that you\n"+\
-                                        "will find in "+str(tile.build_dir)+".\n")
-        tile_log.write(line.decode("utf-8"))
-        tile_log.close()
-        return 0
+            f_ele=open(FNAMES.output_ele_file(tile),'r')
+            nbr_tri=int(f_ele.readline().split()[0])
+            f_ele.close()
+
+        if nbr_tri >= tile.min_tri and nbr_tri <= tile.max_tri:
+            UI.vprint(1, "Triangles within min/max range, continuing.\n")
+            break
+        elif nbr_tri <= tile.min_tri and curv_tol <= 0.2:
+            UI.vprint(1, "Triangles less than minimum, but curv_tol at lower threshhold.")
+            curv_tol = 0.2
+            break
+        elif curv_tol >= 20.0:
+            UI.vprint(1, "curv_tol too high, error.")
+            curv_tol = 20.0
+            break
+        elif nbr_tri <= tile.min_tri and curv_tol >=0.2:
+            if curv_tol < 2.0:
+                curv_tol -= 0.1
+            else:
+                curv_tol = round((curv_tol + 0.2) / 2, 2)
+            if curv_tol < 0.2:
+                    curv_tol = 0.2
+            UI.vprint(1, "Triangles less than minimum, reducing curv_tol to " + str(curv_tol))
+        elif nbr_tri >= tile.max_tri:
+            if curv_tol < 3.0:
+                curv_tol += 0.1
+            else:
+                curv_tol += 0.5
+            UI.vprint(1, "Triangles above maximum, increasing curv_tol to " + str(curv_tol))
+        else:
+            UI.vprint(1, "curv_tol adjusment error, continuing.")
+            break
+    if tile.curvature_tol != curv_tol:
+        UI.vprint(1, "Updating stored curv_tol in config file for tile to " + str(curv_tol))
+        tile.curvature_tol = curv_tol
+        tile.write_to_config()
     tile_log.close()
     if UI.red_flag: UI.exit_message_and_bottom_line(); return 0
     
@@ -343,7 +382,7 @@ def build_mesh(tile):
     tile.dem=None  # post_processing has introduced smoothing, we trash the dem data
 
     if UI.red_flag: UI.exit_message_and_bottom_line(); return 0
-    
+
     write_mesh_file(tile,vertices)
     #
     UI.timings_and_bottom_line(timer)

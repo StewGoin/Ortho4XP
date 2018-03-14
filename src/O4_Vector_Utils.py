@@ -218,7 +218,7 @@ class Vector_Map():
             for polygon in ensure_MultiPolygon(pol):
                 if polygon.area<=area_limit:
                     continue
-                polygon=geometry.Polygon(numpy.round(numpy.array(polygon.exterior.coords),7),[numpy.round(numpy.array(geom.coords),7) for geom in polygon.interiors])
+                #polygon=geometry.Polygon(numpy.round(numpy.array(polygon.exterior.coords),7),[numpy.round(numpy.array(geom.coords),7) for geom in polygon.interiors])
                 try:
                     polygon=geometry.polygon.orient(polygon)  # important for certain pol_to_alt instances
                 except:
@@ -256,9 +256,11 @@ class Vector_Map():
         for line in multilinestring:
             if not skip_cut: line=cut_to_tile(line)
             for linestring in ensure_MultiLineString(line):
-                if linestring.is_empty: 
+                if linestring.is_empty:
                     continue
+                
                 way=numpy.round(numpy.array(linestring),7)
+                #way=numpy.array(linestring)
                 if refine: way=refine_way(way,refine)
                 alti_way=line_to_alt(way).reshape((len(way),1))
                 self.insert_way(numpy.hstack([way,alti_way]),marker,check)

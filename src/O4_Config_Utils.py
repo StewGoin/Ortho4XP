@@ -47,6 +47,8 @@ cfg_vars={
     'sea_smoothing_mode':  {'type':str,  'default':'zero','values':['zero','mean','none'],'hint':"Zero means that all nodes of sea triangles are set to zero elevation. With mean, some kind of smoothing occurs (triangles are levelled one at a time to their mean elevation), None (a value mostly appropriate for DEM resolution of 10m and less), positive altitudes of sea nodes are kept intact, only negative ones are brought back to zero, this avoids to create unrealistic vertical cliffs if the coastline vector data was lower res."},
     'water_smoothing':     {'type':int,  'default':2,'hint':"Number of smoothing passes over all inland water triangles (sequentially set to their mean elevation)."},
     'iterate':             {'type':int,  'default':0,'hint':"Allows to refine a mesh using higher resolution elevation data of local scope only (requires Gdal), typically LIDAR data. Having an iterate number is handy to go backward one step when some choice of parameters needs to be revised."},     
+    'min_tri':             {'type':int,  'default':3000000,'hint':'Minimum Mesh Triangles'},
+    'max_tri':             {'type':int,  'default':5500000,'hint':'Maximum Mesh Triangles'},
     # Masks
     'mask_zl':             {'type':int,'default':15,'hint':'The zoomlevel at which the (sea) water masks are built. Masks are used for alpha channel, and this channel usually requires less resolution than the RGB ones, the reason for this (VRAM saving) parameter. If the coastline and elevation data are very detailed, it might be interesting to lieft this parameter up so that the masks can reproduce this complexity.'},
     'masks_width':         {'type':int,'default':100,'hint':'Maximum extent of the masks perpendicularly to the coastline (rough definition). NOTE: The value is now in meters, it used to be in ZL14 pixel size in earlier verions, the scale is roughly one to ten between both.'},
@@ -82,7 +84,7 @@ gui_app_vars_short=list_app_vars[:-2]
 gui_app_vars_long=list_app_vars[-2:]
 
 list_vector_vars=['road_level','road_banking_limit','max_levelled_segs','min_area','clean_bad_geometries','mesh_zl']
-list_mesh_vars=['curvature_tol','apt_curv_tol','apt_curv_ext','coast_curv_tol','coast_curv_ext','hmin','min_angle','apt_smoothing_pix','sea_smoothing_mode','water_smoothing','iterate']
+list_mesh_vars=['curvature_tol','apt_curv_tol','apt_curv_ext','coast_curv_tol','coast_curv_ext','hmin','min_angle','apt_smoothing_pix','sea_smoothing_mode','water_smoothing','iterate','min_tri','max_tri']
 list_mask_vars=['mask_zl','masks_width','masking_mode','use_masks_for_inland','masks_use_DEM_too','masks_custom_extent']
 list_dsf_vars=['cover_airports_with_highres','cover_extent','cover_zl','ratio_water','overlay_lod','sea_texture_blur','add_low_res_sea_ovl','experimental_water','normal_map_strength','terrain_casts_shadows','use_decal_on_terrain']
 list_other_vars=['custom_dem','fill_nodata','usgs_tiff']
